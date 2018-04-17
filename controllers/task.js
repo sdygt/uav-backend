@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 
 app.all('/',(req,res,next)=>{
-   next(new Error('Not yet implemented\nALL /uav'));
+    next(new Error('Not yet implemented\nALL /task'));
 });
 
 module.exports = app;
