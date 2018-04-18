@@ -58,3 +58,5 @@ typings/
 .env
 
 .idea/
+config/dev.json
+config/production.json

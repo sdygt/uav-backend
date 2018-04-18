@@ -3,12 +3,15 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "dev": "NODE_ENV=dev node ./bin/www"
   },
   "dependencies": {
+    "config": "^1.30.0",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.9",
     "express": "~4.16.0",
+    "mongodb": "^3.0.7",
     "morgan": "~1.9.0"
   },
   "devDependencies": {
