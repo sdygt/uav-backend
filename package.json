@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "dev": "cross-env NODE_ENV=dev node ./bin/www"
+    "dev": "cross-env NODE_ENV=dev node ./bin/www",
+    "test": "mocha"
   },
   "dependencies": {
     "config": "^1.30.0",
