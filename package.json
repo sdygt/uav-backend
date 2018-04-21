@@ -4,11 +4,12 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "dev": "NODE_ENV=dev node ./bin/www"
+    "dev": "cross-env NODE_ENV=dev node ./bin/www"
   },
   "dependencies": {
     "config": "^1.30.0",
     "cookie-parser": "~1.4.3",
+    "cross-env": "^5.1.4",
     "debug": "~2.6.9",
     "express": "~4.16.0",
     "mongodb": "^3.0.7",

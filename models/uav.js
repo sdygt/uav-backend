@@ -1,6 +1,7 @@
 const config = require('config');
 const MongoClient = require('mongodb').MongoClient;
 const ObjectID = require('mongodb').ObjectID;
+const configer = require('../helper/configer');
 
 module.exports = {
     getNewInstance: ({name = 'Untitled', lon, lat, max_speed = -1, max_distance = -1, assoc_tasks = []}) => {
@@ -17,7 +18,7 @@ module.exports = {
     },
 
     add: async (iUAV) => {
-        const client = await MongoClient.connect(config.get('MONGO_URI'));
+        const client = await MongoClient.connect(configer.get('MONGO_URI'));
         const collection = client.db('uav-backend').collection('uav');
         return new Promise((resolve, reject) => {
             collection.insertOne(iUAV)
@@ -30,7 +31,7 @@ module.exports = {
     },
 
     getOne: async (id) => {
-        let client = await MongoClient.connect(config.get('MONGO_URI'));
+        let client = await MongoClient.connect(configer.get('MONGO_URI'));
 
         const collection = client.db('uav-backend').collection('uav');
         return new Promise((resolve, reject) => {
@@ -41,7 +42,7 @@ module.exports = {
     },
 
     getAll: async () => {
-        let client = await MongoClient.connect(config.get('MONGO_URI'));
+        let client = await MongoClient.connect(configer.get('MONGO_URI'));
         const collection = client.db('uav-backend').collection('uav');
         return new Promise((resolve, reject) => {
             collection.find({}, {}).toArray((err, docs) => {
@@ -51,7 +52,7 @@ module.exports = {
     },
 
     update: async (id, text) => {
-        let client = await MongoClient.connect(config.get('MONGO_URI'));
+        let client = await MongoClient.connect(configer.get('MONGO_URI'));
         const collection = client.db('uav-backend').collection('uav');
         return new Promise((resolve, reject) => {
             collection.updateOne(
@@ -64,7 +65,7 @@ module.exports = {
     },
 
     remove: async (id) => {
-        let client = await MongoClient.connect(config.get('MONGO_URI'));
+        let client = await MongoClient.connect(configer.get('MONGO_URI'));
         const collection = client.db('uav-backend').collection('uav');
         return new Promise((resolve, reject) => {
             collection.deleteOne({'_id': new ObjectID(id)}, (err, r) => {
