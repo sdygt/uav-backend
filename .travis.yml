@@ -8,7 +8,4 @@ node_js:
 services:
   - mongodb
 
-before_script:
-  - sleep 5
-
 cache: yarn
