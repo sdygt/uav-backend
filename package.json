@@ -3,9 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www",
+    "start": "cross-env NODE_ENV=production node ./bin/www",
     "dev": "cross-env NODE_ENV=dev node ./bin/www",
-    "test": "mocha"
+    "test": "cross-env NODE_ENV=dev mocha",
+    "test:cover":"nyc mocha"
   },
   "dependencies": {
     "config": "^1.30.0",
@@ -17,11 +18,10 @@
     "morgan": "~1.9.0"
   },
   "devDependencies": {
-    "babel-core": "^6.26.0",
-    "babel-preset-env": "^1.6.1",
     "chai": "^4.1.2",
     "eslint": "^4.19.1",
     "mocha": "^5.1.1",
+    "nyc": "^11.7.1",
     "supertest": "^3.0.0"
   }
 }

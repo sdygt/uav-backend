@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 
 const mUAV = require('../models/uav');
+const BulkWriteError = require('mongodb/lib/bulk/common').BulkWriteError;
 
 app.get('/', function (req, res, next) {
     mUAV.getAll()
@@ -28,15 +29,43 @@ app.get('/:id', (req, res, next) => {
 });
 
 app.post('/', (req, res, next) => {
-    let iUAV = mUAV.getNewInstance(req.body);
-
-    mUAV.add(iUAV)
-        .then((oid) => {
-            res.status(201).location(`${req.baseUrl}/${oid.toHexString()}`).end();
-        })
-        .catch(err => {
-            next(err);
+    if (Array.isArray(req.body)) {
+        // 传入了数组，一次插入一堆
+        let arrUAV = [];
+        req.body.map(uav => {
+            if (typeof uav.id === 'undefined') {
+                let err = new Error('Field `id` not set');
+                err.status = 400;
+                next(err);
+            }
+            arrUAV.push(mUAV.getNewInstance(uav));
         });
+
+        const _purge = req.get('X-Purge-UAV') === 'true';
+
+        mUAV.addMany(arrUAV, _purge)
+            .then(r => {
+                res.status(201).json(r).end();
+            })
+            .catch(e => {
+                let err = new Error(e.message);
+                if (e instanceof BulkWriteError) {
+                    // `id` 键冲突的情况
+                    err.status = 400;
+                }
+                next(err);
+            });
+
+    } else {
+        let iUAV = mUAV.getNewInstance(req.body);
+
+        mUAV.addOne(iUAV)
+            .then(() => {
+                res.status(201).end();
+            })
+            .catch(err => next(err));
+    }
+
 });
 
 app.put('/:id', (req, res, next) => {

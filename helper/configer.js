@@ -10,7 +10,7 @@ let configer = {
             || `mongodb://${config.get('MONGODB_PORT_27017_TCP_ADDR')}:${config.get('MONGODB_PORT_27017_TCP_PORT')}/`
         };
 
-        return _overrides[key] || process.env[key] || config.get(key);
+        return _overrides[key] || process.env[key] || (config.has(key) ? config.get(key) : undefined);
     }
 };
 
