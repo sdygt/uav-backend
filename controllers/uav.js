@@ -7,7 +7,18 @@ const BulkWriteError = require('mongodb/lib/bulk/common').BulkWriteError;
 app.get('/', function (req, res, next) {
     mUAV.getAll()
         .then(data => {
-            res.status(200).json(data).end();
+
+            let ret = data.map(mUAV => {
+                return {
+                    id: mUAV.id, name: mUAV.name,
+                    lng: mUAV.position.coordinates[0],
+                    lat: mUAV.position.coordinates[1],
+                    capacity: mUAV.capacity,
+                    max_distance: mUAV.max_distance,
+                    max_speed: mUAV.max_speed
+                };
+            });
+            res.status(200).json(ret).end();
         })
         .catch(err => {
             next(err);
@@ -18,7 +29,15 @@ app.get('/:id', (req, res, next) => {
     mUAV.getOne(req.params.id)
         .then(data => {
             if (data) {
-                res.status(200).json(data).end();
+                console.warn(`@c.get/:id.then  ${data}`);
+                res.status(200).json({
+                                         id: data.id, name: data.name,
+                                         lng: data.position.coordinates[0],
+                                         lat: data.position.coordinates[1],
+                                         capacity: data.capacity,
+                                         max_distance: data.max_distance,
+                                         max_speed: data.max_speed
+                                     }).end();
             } else {
                 res.status(404).end();
             }

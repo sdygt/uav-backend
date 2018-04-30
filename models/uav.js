@@ -4,7 +4,6 @@ const ObjectID = require('mongodb').ObjectID;
 const configer = require('../helper/configer');
 
 module.exports = {
-
     getNewInstance: (
         {
             name = '未命名飞行器', id, lng, lat,

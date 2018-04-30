@@ -19,6 +19,7 @@ describe('CURD of UAVs', () => {
         let db = await MongoClient.connect(configer.get('MONGO_URI'));
         collection = await db.db(configer.get('DB_NAME')).collection('uav');
         await collection.createIndex('id', {'unique': true, 'background': true});
+
     });
 
     beforeEach(async () => {
@@ -54,6 +55,7 @@ describe('CURD of UAVs', () => {
                     expect(data).to.include({'id': 'feid_11223344', 'max_speed': 300});
                     expect(data.position).to.eql({'type': 'Point', 'coordinates': [121, 31]});
                     expect(data.capacity).to.eql(['A', 'C']);
+                    // 这里用Mongo driver读取DB的，所以结构上还是GeoJSON的格式
                     done();
                 });
             });
@@ -171,22 +173,34 @@ describe('CURD of UAVs', () => {
     });
 
     it('Get All UAVs', (done) => {
-        const docs = [{
-            'id': 'feid_22334455', 'name': 'name of UÅV',
-            'lng': 121, 'lat': 31,
-            'max_speed': 300, 'max_distance': 400,
-            'capacity': ['A', 'C']
-        }, {
-            'id': 'feid_33445566', 'name': 'name of UÅV',
-            'lng': 110, 'lat': 25,
-            'max_speed': 300, 'max_distance': 400,
-            'capacity': ['C', 'R']
-        }, {
-            'id': 'feid_44556677', 'name': 'name of UÅV',
-            'lng': 100, 'lat': 20,
-            'max_speed': 300, 'max_distance': 400,
-            'capacity': ['R', 'A']
-        }];
+        const docs = [
+            {
+                'id': 'feid_22334455',
+                'name': '无人机的标签/名称',
+                'position': {
+                    'type': 'Point',
+                    'coordinates': [121, 31]
+                },
+                'max_speed': 300,
+                'max_distance': 400,
+                'capacity': ['A', 'R', 'C']
+            }, {
+                'id': 'feid_33445566', 'name': 'name of UÅV',
+                'position': {
+                    'type': 'Point',
+                    'coordinates': [110, 30]
+                },
+                'max_speed': 300, 'max_distance': 400,
+                'capacity': ['C', 'R']
+            }, {
+                'id': 'feid_44556677', 'name': 'name of UÅV',
+                'position': {
+                    'type': 'Point',
+                    'coordinates': [1105, 25]
+                },
+                'max_speed': 300, 'max_distance': 400,
+                'capacity': ['R', 'A']
+            }]; //下面使用Mongo插入，所以上面使用GeoJSON格式
 
         collection.insertMany(docs)
             .then(() => {
@@ -195,7 +209,8 @@ describe('CURD of UAVs', () => {
                     .expect(200)
                     .end((err, res) => {
                         should.not.exist(err);
-                        expect(JSON.parse(res.text)).to.have.lengthOf(3);
+                        const r = JSON.parse(res.text);
+                        expect(r).to.have.lengthOf(3);
                         done();
                     });
             });
@@ -204,22 +219,34 @@ describe('CURD of UAVs', () => {
     });
 
     it('Get one UAV', done => {
-        const docs = [{
-            'id': 'feid_22334455', 'name': 'name of UÅV',
-            'lng': 121, 'lat': 31,
-            'max_speed': 300, 'max_distance': 400,
-            'capacity': ['A', 'C']
-        }, {
-            'id': 'feid_33445566', 'name': 'name of UÅV',
-            'lng': 110, 'lat': 25,
-            'max_speed': 300, 'max_distance': 400,
-            'capacity': ['C', 'R']
-        }, {
-            'id': 'feid_44556677', 'name': 'name of UÅV',
-            'lng': 100, 'lat': 20,
-            'max_speed': 300, 'max_distance': 400,
-            'capacity': ['R', 'A']
-        }];
+        const docs = [
+            {
+                'id': 'feid_22334455',
+                'name': '无人机的标签/名称',
+                'position': {
+                    'type': 'Point',
+                    'coordinates': [121, 31]
+                },
+                'max_speed': 300,
+                'max_distance': 400,
+                'capacity': ['A', 'R', 'C']
+            }, {
+                'id': 'feid_33445566', 'name': 'name of UÅV',
+                'position': {
+                    'type': 'Point',
+                    'coordinates': [110, 30]
+                },
+                'max_speed': 300, 'max_distance': 400,
+                'capacity': ['C', 'R']
+            }, {
+                'id': 'feid_44556677', 'name': 'name of UÅV',
+                'position': {
+                    'type': 'Point',
+                    'coordinates': [100, 25]
+                },
+                'max_speed': 300, 'max_distance': 400,
+                'capacity': ['R', 'A']
+            }];
 
         collection.insertMany(docs)
             .then(() => {
@@ -228,9 +255,9 @@ describe('CURD of UAVs', () => {
                     .expect(200)
                     .end((err, res) => {
                         should.not.exist(err);
-                        let doc = JSON.parse((res.text));
-                        expect(doc).to.be.a('Object');
-                        expect(doc).to.include({'lng': 110});
+                        let r = JSON.parse(res.text);
+                        expect(r).to.be.a('Object');
+                        expect(r).to.include({'lng': 110});
                         done();
                     });
             });
