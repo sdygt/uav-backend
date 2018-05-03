@@ -29,15 +29,14 @@ app.get('/:id', (req, res, next) => {
     mUAV.getOne(req.params.id)
         .then(data => {
             if (data) {
-                console.warn(`@c.get/:id.then  ${data}`);
                 res.status(200).json({
-                                         id: data.id, name: data.name,
-                                         lng: data.position.coordinates[0],
-                                         lat: data.position.coordinates[1],
-                                         capacity: data.capacity,
-                                         max_distance: data.max_distance,
-                                         max_speed: data.max_speed
-                                     }).end();
+                    id: data.id, name: data.name,
+                    lng: data.position.coordinates[0],
+                    lat: data.position.coordinates[1],
+                    capacity: data.capacity,
+                    max_distance: data.max_distance,
+                    max_speed: data.max_speed
+                }).end();
             } else {
                 res.status(404).end();
             }
@@ -88,14 +87,9 @@ app.post('/', (req, res, next) => {
 });
 
 app.put('/:id', (req, res, next) => {
-    let iUAV = mUAV.getNewInstance(req.body);
-
-    mUAV.update(req.params.id, iUAV)
+    mUAV.update(req.params.id, req.body)
         .then(r => {
-            console.warn(r);
-            if (r === null) {
-                res.status(404).end(); //对应不是有效ObjectID的情况
-            } else if (r.matchedCount === 0) {
+            if (r.matchedCount === 0) {
                 res.status(404).end(); //对应DB里找不到的情况
             } else {
                 res.status(200).end();
@@ -107,10 +101,10 @@ app.put('/:id', (req, res, next) => {
 });
 
 app.delete('/:id', (req, res, next) => {
-
-    mUAV.remove(req.params.id)
-        .then(r => {
-            res.status(204).end(); //DELETE 是幂等操作，输入非法或不存在oid同样返回204
+    const arrID = req.params.id.split(',').filter(str => str !== '');
+    mUAV.remove(arrID)
+        .then(deletedCount => {
+            res.status(200).json({'deletedCount': deletedCount}).end();
         })
         .catch(e => {
             next(e); //但是有问题还是报错

@@ -77,15 +77,8 @@ module.exports = {
         let client = await MongoClient.connect(configer.get('MONGO_URI'));
         const collection = client.db('uav-backend').collection('uav');
         return new Promise((resolve, reject) => {
-            let _oid;
-            try {
-                _oid = new ObjectID(id);
-            } catch (e) {
-                resolve(null);
-            }
-
             collection.updateOne(
-                {'_id': _oid},
+                {'id': id},
                 {$set: iUAV},
                 (err, r) => {
                     err ? reject(err) : resolve(r);
@@ -93,21 +86,22 @@ module.exports = {
         });
     },
 
-    remove: async (id) => {
+    remove: async (arrID) => {
         let client = await MongoClient.connect(configer.get('MONGO_URI'));
         const collection = client.db('uav-backend').collection('uav');
         return new Promise((resolve, reject) => {
-
-            let _oid;
             try {
-                _oid = new ObjectID(id);
+                let arrCountP = arrID.map(async id => {
+                    let r = await collection.deleteOne({'id': id});
+                    return r.deletedCount;
+                });
+                Promise.all(arrCountP).then(value => {
+                    let deletedCount = value.reduce((a, b) => a + b);
+                    resolve(deletedCount);
+                });
             } catch (e) {
-                resolve(null);
+                reject(e);
             }
-
-            collection.deleteOne({'_id': _oid}, (err, r) => {
-                err ? reject(err) : resolve(r);
-            });
         });
     }
 };
