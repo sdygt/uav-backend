@@ -73,13 +73,20 @@ module.exports = {
         });
     },
 
-    update: async (id, iUAV) => {
+    update: async (id, update) => {
         let client = await MongoClient.connect(configer.get('MONGO_URI'));
         const collection = client.db('uav-backend').collection('uav');
+
+        let mongo_set = {};
+        Object.assign(mongo_set, update);
+        mongo_set.position = {type: 'Point', coordinates: [update.lng || undefined, update.lat || undefined]};
+        delete mongo_set.lng;
+        delete mongo_set.lat;
+        console.warn(mongo_set);
         return new Promise((resolve, reject) => {
             collection.updateOne(
                 {'id': id},
-                {$set: iUAV},
+                {$set: mongo_set},
                 (err, r) => {
                     err ? reject(err) : resolve(r);
                 });

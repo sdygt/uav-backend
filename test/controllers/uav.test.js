@@ -31,7 +31,6 @@ describe('/uav', () => {
         await collection.deleteMany({});
     });
 
-
     describe('Add...', () => {
         it('an UAV', done => {
             const doc = {
@@ -54,8 +53,8 @@ describe('/uav', () => {
                     collection.findOne({'id': 'feid_11223344'}, {}, (error, data) => {
                         should.not.exist(error);
                         expect(data).to.include({'id': 'feid_11223344', 'max_speed': 300});
-                        expect(data.position).to.eql({'type': 'Point', 'coordinates': [121, 31]});
-                        expect(data.capacity).to.eql(['A', 'C']);
+                        expect(data).to.have.deep.nested.property('position.coordinates', [121, 31]);
+                        expect(data).to.have.deep.nested.property('capacity', ['A', 'C']);
                         // 这里用Mongo driver读取DB的，所以结构上还是GeoJSON的格式
                         done();
                     });
@@ -284,8 +283,10 @@ describe('/uav', () => {
             const orig_doc = {
                 'id': 'feid_11223344',
                 'name': 'name of UÅV',
-                'lng': 121,
-                'lat': 31,
+                'position': {
+                    'type': 'Point',
+                    'coordinates': [121, 31]
+                },
                 'max_speed': 300,
                 'max_distance': 400,
                 'capacity': ['A', 'C']
@@ -302,7 +303,9 @@ describe('/uav', () => {
                             should.not.exist(err);
                             collection.findOne({'id': 'feid_11223344'}, {}, (error, data) => {
                                 should.not.exist(error);
-                                expect(data).to.include({'max_speed': 100});
+                                console.warn(data);
+                                expect(data).to.include({'max_speed': 100, 'max_distance': 400});
+                                expect(data).to.deep.nested.property('position.coordinates', [100, 30]);
                                 done();
                             });
                         });
@@ -321,6 +324,7 @@ describe('/uav', () => {
                 });
         });
     });
+
     describe('Delete...', () => {
         const docs = [{
             'id': 'feid_22334455', 'name': 'name of UÅV',
