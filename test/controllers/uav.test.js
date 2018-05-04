@@ -297,15 +297,14 @@ describe('/uav', () => {
                     request(app)
                         .put('/uav/feid_11223344')
                         .type('json')
-                        .send({'lng': 100, 'lat': 30, 'max_speed': 100})
+                        .send({'lng': 100, 'max_speed': 100})
                         .expect(200)
                         .end((err, _) => {
                             should.not.exist(err);
                             collection.findOne({'id': 'feid_11223344'}, {}, (error, data) => {
                                 should.not.exist(error);
-                                console.warn(data);
                                 expect(data).to.include({'max_speed': 100, 'max_distance': 400});
-                                expect(data).to.deep.nested.property('position.coordinates', [100, 30]);
+                                expect(data).to.deep.nested.property('position.coordinates', [100, 31]);
                                 done();
                             });
                         });

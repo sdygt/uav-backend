@@ -79,10 +79,14 @@ module.exports = {
 
         let mongo_set = {};
         Object.assign(mongo_set, update);
-        mongo_set.position = {type: 'Point', coordinates: [update.lng || undefined, update.lat || undefined]};
+        if (typeof update.lng !== 'undefined') {
+            mongo_set['position.coordinates.0'] = update.lng;
+        }
+        if (typeof update.lat !== 'undefined') {
+            mongo_set['position.coordinates.1'] = update.lat;
+        }
         delete mongo_set.lng;
         delete mongo_set.lat;
-        console.warn(mongo_set);
         return new Promise((resolve, reject) => {
             collection.updateOne(
                 {'id': id},
