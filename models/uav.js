@@ -3,6 +3,13 @@ const MongoClient = require('mongodb').MongoClient;
 const ObjectID = require('mongodb').ObjectID;
 const configer = require('../helper/configer');
 
+
+let client, collection;
+(async () => {
+    client = await MongoClient.connect(configer.get('MONGO_URI'));
+    collection = client.db('uav-backend').collection('uav');
+})();
+
 module.exports = {
     getNewInstance: (
         {
@@ -25,58 +32,28 @@ module.exports = {
     },
 
     addOne: async (iUAV) => {
-        const client = await MongoClient.connect(configer.get('MONGO_URI'));
-        const collection = client.db('uav-backend').collection('uav');
-        return new Promise((resolve, reject) => {
-            collection.insertOne(iUAV)
-                .then(r => resolve(r.insertedId))
-                .catch(err => {
-                    reject(err);
-                });
-        });
+        return collection.insertOne(iUAV);
     },
 
     addMany: async (arrUAV, purge) => {
-        const client = await MongoClient.connect(configer.get('MONGO_URI'));
-        const collection = client.db('uav-backend').collection('uav');
+        const bulk = collection.initializeOrderedBulkOp();
+
         if (purge) {
-            collection.deleteMany({});
+            bulk.find({}).remove({});
         }
-        return new Promise((resolve, reject) => {
-            collection.insertMany(arrUAV, (err, r) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve({insertedCount: r.insertedCount});
-                }
-            });
-        });
+        arrUAV.forEach(uav => bulk.insert(uav));
+        return bulk.execute();
     },
 
     getOne: async (id) => {
-        const client = await MongoClient.connect(configer.get('MONGO_URI'));
-        const collection = client.db('uav-backend').collection('uav');
-        return new Promise((resolve, reject) => {
-            collection.findOne({'id': id}, {}, (err, data) => {
-                err ? reject(err) : resolve(data);
-            });
-        });
+        return collection.findOne({'id': id}, {});
     },
 
     getAll: async () => {
-        let client = await MongoClient.connect(configer.get('MONGO_URI'));
-        const collection = client.db('uav-backend').collection('uav');
-        return new Promise((resolve, reject) => {
-            collection.find({}, {}).toArray((err, docs) => {
-                err ? reject(err) : resolve(docs);
-            });
-        });
+        return collection.find({}, {}).toArray();
     },
 
     update: async (id, update) => {
-        let client = await MongoClient.connect(configer.get('MONGO_URI'));
-        const collection = client.db('uav-backend').collection('uav');
-
         let mongo_set = {};
         Object.assign(mongo_set, update);
         if (typeof update.lng !== 'undefined') {
@@ -87,32 +64,21 @@ module.exports = {
         }
         delete mongo_set.lng;
         delete mongo_set.lat;
-        return new Promise((resolve, reject) => {
-            collection.updateOne(
-                {'id': id},
-                {$set: mongo_set},
-                (err, r) => {
-                    err ? reject(err) : resolve(r);
-                });
-        });
+
+        return collection.updateOne({'id': id}, {$set: mongo_set});
     },
 
     remove: async (arrID) => {
-        let client = await MongoClient.connect(configer.get('MONGO_URI'));
-        const collection = client.db('uav-backend').collection('uav');
-        return new Promise((resolve, reject) => {
-            try {
-                let arrCountP = arrID.map(async id => {
-                    let r = await collection.deleteOne({'id': id});
-                    return r.deletedCount;
-                });
-                Promise.all(arrCountP).then(value => {
-                    let deletedCount = value.reduce((a, b) => a + b);
-                    resolve(deletedCount);
-                });
-            } catch (e) {
-                reject(e);
-            }
+        let arrCountP = arrID.map(async id => {
+            let r = await collection.deleteOne({'id': id});
+            return r.deletedCount;
         });
+
+        let deletedCount = await Promise.all(arrCountP).then(value => {
+            return value.reduce((a, b) => a + b); //deletedCount
+        });
+
+        return deletedCount;
+
     }
 };

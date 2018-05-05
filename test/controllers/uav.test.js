@@ -154,6 +154,11 @@ describe('/uav', () => {
 
         it('should fail with duplicate id', done => {
             const docs = [{
+                'id': 'feid_11223344', 'name': 'name of UÅV',
+                'lng': 100, 'lat': 25,
+                'max_speed': 300, 'max_distance': 400,
+                'capacity': ['A', 'C']
+            }, {
                 'id': 'feid_22334455', 'name': 'name of UÅV',
                 'lng': 121, 'lat': 31,
                 'max_speed': 300, 'max_distance': 400,
@@ -163,6 +168,11 @@ describe('/uav', () => {
                 'lng': 110, 'lat': 25,
                 'max_speed': 300, 'max_distance': 400,
                 'capacity': ['C', 'R']
+            }, {
+                'id': 'feid_33445566', 'name': 'name of UÅV',
+                'lng': 133, 'lat': 40,
+                'max_speed': 300, 'max_distance': 400,
+                'capacity': ['A', 'C']
             }];
 
             request(app)
@@ -199,7 +209,7 @@ describe('/uav', () => {
                     'id': 'feid_44556677', 'name': 'name of UÅV',
                     'position': {
                         'type': 'Point',
-                        'coordinates': [1105, 25]
+                        'coordinates': [105, 25]
                     },
                     'max_speed': 300, 'max_distance': 400,
                     'capacity': ['R', 'A']
