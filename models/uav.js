@@ -27,50 +27,49 @@ module.exports = {
     addOne: async (iUAV) => {
         const client = await MongoClient.connect(configer.get('MONGO_URI'));
         const collection = client.db('uav-backend').collection('uav');
-        return new Promise((resolve, reject) => {
-            collection.insertOne(iUAV)
-                .then(r => resolve(r.insertedId))
-                .catch(err => {
-                    reject(err);
-                });
-        });
+
+        try {
+            let r = collection.insertOne(iUAV);
+            return r.insertedId;
+        } catch (e) {
+            throw e;
+        }
     },
 
     addMany: async (arrUAV, purge) => {
         const client = await MongoClient.connect(configer.get('MONGO_URI'));
         const collection = client.db('uav-backend').collection('uav');
-        if (purge) {
-            collection.deleteMany({});
+
+        try {
+            if (purge) {
+                await collection.deleteMany({});
+            }
+            let r = await collection.insertMany(arrUAV);
+            return {insertedCount: r.insertedCount};
+        } catch (e) {
+            throw e;
         }
-        return new Promise((resolve, reject) => {
-            collection.insertMany(arrUAV, (err, r) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve({insertedCount: r.insertedCount});
-                }
-            });
-        });
     },
 
     getOne: async (id) => {
         const client = await MongoClient.connect(configer.get('MONGO_URI'));
         const collection = client.db('uav-backend').collection('uav');
-        return new Promise((resolve, reject) => {
-            collection.findOne({'id': id}, {}, (err, data) => {
-                err ? reject(err) : resolve(data);
-            });
-        });
+        try {
+            return collection.findOne({'id': id}, {});
+        } catch (e) {
+            throw e;
+
+        }
     },
 
     getAll: async () => {
         let client = await MongoClient.connect(configer.get('MONGO_URI'));
         const collection = client.db('uav-backend').collection('uav');
-        return new Promise((resolve, reject) => {
-            collection.find({}, {}).toArray((err, docs) => {
-                err ? reject(err) : resolve(docs);
-            });
-        });
+        try {
+            return await collection.find({}, {}).toArray();
+        } catch (e) {
+            throw e;
+        }
     },
 
     update: async (id, update) => {
@@ -87,32 +86,28 @@ module.exports = {
         }
         delete mongo_set.lng;
         delete mongo_set.lat;
-        return new Promise((resolve, reject) => {
-            collection.updateOne(
-                {'id': id},
-                {$set: mongo_set},
-                (err, r) => {
-                    err ? reject(err) : resolve(r);
-                });
-        });
+
+        try {
+            return collection.updateOne({'id': id}, {$set: mongo_set});
+        } catch (e) {
+            throw e;
+        }
     },
 
     remove: async (arrID) => {
         let client = await MongoClient.connect(configer.get('MONGO_URI'));
         const collection = client.db('uav-backend').collection('uav');
-        return new Promise((resolve, reject) => {
-            try {
-                let arrCountP = arrID.map(async id => {
-                    let r = await collection.deleteOne({'id': id});
-                    return r.deletedCount;
-                });
-                Promise.all(arrCountP).then(value => {
-                    let deletedCount = value.reduce((a, b) => a + b);
-                    resolve(deletedCount);
-                });
-            } catch (e) {
-                reject(e);
-            }
-        });
+        try {
+            let arrCountP = arrID.map(async id => {
+                let r = await collection.deleteOne({'id': id});
+                return r.deletedCount;
+            });
+            let deletedCount = await Promise.all(arrCountP).then(value => {
+                return value.reduce((a, b) => a + b); //deletedCount
+            });
+            return deletedCount;
+        } catch (e) {
+            throw e;
+        }
     }
 };
