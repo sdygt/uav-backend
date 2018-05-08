@@ -2,12 +2,10 @@ const express = require('express');
 const app = express();
 
 const mUAV = require('../models/uav');
-const BulkWriteError = require('mongodb/lib/bulk/common').BulkWriteError;
 
 app.get('/', function (req, res, next) {
     mUAV.getAll()
         .then(data => {
-
             let ret = data.map(mUAV => {
                 return {
                     id: mUAV.id, name: mUAV.name,
@@ -20,9 +18,7 @@ app.get('/', function (req, res, next) {
             });
             res.status(200).json(ret).end();
         })
-        .catch(err => {
-            next(err);
-        });
+        .catch(err => next(err));
 });
 
 app.get('/:id', (req, res, next) => {
@@ -41,9 +37,7 @@ app.get('/:id', (req, res, next) => {
                 res.status(404).end();
             }
         })
-        .catch(err => {
-            next(err);
-        });
+        .catch(err => next(err));
 });
 
 app.post('/', (req, res, next) => {
@@ -65,14 +59,7 @@ app.post('/', (req, res, next) => {
             .then(r => {
                 res.status(201).json(r).end();
             })
-            .catch(e => {
-                let err = new Error(e.message);
-                if (e instanceof BulkWriteError) {
-                    // `id` 键冲突的情况
-                    err.status = 400;
-                }
-                next(err);
-            });
+            .catch(e => next(e));
 
     } else {
         let iUAV = mUAV.getNewInstance(req.body);
@@ -95,9 +82,7 @@ app.put('/:id', (req, res, next) => {
                 res.status(200).end();
             }
         })
-        .catch(err => {
-            next(err);
-        });
+        .catch(err => next(err));
 });
 
 app.delete('/:id', (req, res, next) => {
@@ -106,9 +91,7 @@ app.delete('/:id', (req, res, next) => {
         .then(deletedCount => {
             res.status(200).json({'deletedCount': deletedCount}).end();
         })
-        .catch(e => {
-            next(e); //但是有问题还是报错
-        });
+        .catch(e => next(e));
 });
 
 

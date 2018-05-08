@@ -19,7 +19,6 @@ describe('/uav', () => {
         let db = await MongoClient.connect(configer.get('MONGO_URI'));
         collection = await db.db(configer.get('DB_NAME')).collection('uav');
         await collection.createIndex('id', {'unique': true, 'background': true});
-
     });
 
     beforeEach(async () => {
