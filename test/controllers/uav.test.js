@@ -152,7 +152,7 @@ describe('/uav', () => {
         });
 
 
-        it('should fail with duplicate id', done => {
+        it('should not fail with duplicate id', done => {
             const docs = [{
                 'id': 'feid_11223344', 'name': 'name of UÅV',
                 'lng': 100, 'lat': 25,
@@ -179,8 +179,14 @@ describe('/uav', () => {
                 .post('/uav')
                 .type('json')
                 .send(docs)
-                .expect(400)
-                .end(done);
+                .expect(201)
+                .end((err)=>{
+                    should.not.exist(err);
+                    collection.count({}, (e, count) => {
+                        expect(count).to.eql(3);
+                        done();
+                    });
+                });
         });
     });
 

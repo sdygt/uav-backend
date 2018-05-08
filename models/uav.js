@@ -32,7 +32,7 @@ module.exports = {
     },
 
     addOne: async (iUAV) => {
-        return collection.insertOne(iUAV);
+        return collection.updateOne({id: iUAV.id}, {$set: iUAV}, {upsert: true});
     },
 
     addMany: async (arrUAV, purge) => {
@@ -41,7 +41,9 @@ module.exports = {
         if (purge) {
             bulk.find({}).remove({});
         }
-        arrUAV.forEach(uav => bulk.insert(uav));
+        arrUAV.forEach(uav => {
+            return bulk.find({id: uav.id}).upsert().updateOne({$set: uav});
+        });
         return bulk.execute();
     },
 
