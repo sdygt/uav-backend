@@ -1,12 +1,10 @@
-const config = require('config');
 const MongoClient = require('mongodb').MongoClient;
-const ObjectID = require('mongodb').ObjectID;
 const configer = require('../helper/configer');
 
 
-let client, collection;
+let collection;
 (async () => {
-    client = await MongoClient.connect(configer.get('MONGO_URI'));
+    let client = await MongoClient.connect(configer.get('MONGO_URI'));
     collection = client.db('uav-backend').collection('uav');
 })();
 
