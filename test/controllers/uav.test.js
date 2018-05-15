@@ -179,7 +179,7 @@ describe('/uav', () => {
                 .type('json')
                 .send(docs)
                 .expect(201)
-                .end((err)=>{
+                .end((err) => {
                     should.not.exist(err);
                     collection.count({}, (e, count) => {
                         expect(count).to.eql(3);

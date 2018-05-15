@@ -73,7 +73,7 @@ describe('/test', () => {
                 id: 'feid_1122',
                 name: 'test_task',
                 type: 'cruise',
-                'target': {
+                target: {
                     'type': 'MultiPoint',
                     'coordinates': [[110, 30], [121, 31], [115, 30.5]]
                 },
@@ -142,4 +142,271 @@ describe('/test', () => {
             done();
         });
     });
+
+    describe('Get...', () => {
+        const docs = [
+            {
+                'id': 'tid_1111',
+                'name': 'Task name',
+                'type': 'attack',
+                'target': {
+                    'type': 'Point',
+                    'coordinates': [121.5, 31.3]
+                },
+                'startTime': 42,
+                'endTime': 404
+            }, {
+                'id': 'tid_222',
+                'name': 'research',
+                'type': 'research',
+                'target': {
+                    'type': 'Point',
+                    'coordinates': [121, 31]
+                },
+                'startTime': 66,
+                'endTime': 233
+            }, {
+                'id': 'tid_333',
+                'name': 'CRS',
+                'type': 'cruise',
+                'target': {
+                    'type': 'MultiPoint',
+                    'coordinates': [
+                        [-73.9580, 40.8003],
+                        [-73.9498, 40.7968],
+                        [-73.9737, 40.7648],
+                        [-73.9814, 40.7681]
+                    ]
+                },
+                'nLoop': 3, //巡航圈数
+                'startTime': 1,
+                'endTime': 20
+            }];
+        it('all tasks', (done) => {
+            collection.insertMany(docs)
+                .then(() => {
+                    request(app)
+                        .get('/task')
+                        .expect(200)
+                        .end((err, res) => {
+                            should.not.exist(err);
+                            expect(res.body).to.have.lengthOf(3);
+                            done();
+                        });
+                });
+        });
+
+        it('tasks of ATK type', done => {
+            collection.insertMany(docs)
+                .then(() => {
+                    request(app)
+                        .get('/task')
+                        .query({type: 'attack'})
+                        .expect(200)
+                        .end((err, res) => {
+                            should.not.exist(err);
+                            const task_atk = {
+                                'id': 'tid_1111',
+                                'name': 'Task name',
+                                'type': 'attack',
+                                'lng': 121.5,
+                                'lat': 31.3,
+                                'startTime': 42,
+                                'endTime': 404
+                            };
+                            expect(res.body).to.deep.include(task_atk);
+                            expect(res.body).to.have.lengthOf(1);
+                            done();
+                        });
+                });
+        });
+
+        it('tasks of CRS type', done => {
+            collection.insertMany(docs)
+                .then(() => {
+                    request(app)
+                        .get('/task')
+                        .query({type: 'cruise'})
+                        .expect(200)
+                        .end((err, res) => {
+                            should.not.exist(err);
+                            const task_crs = {
+                                'id': 'tid_333',
+                                'name': 'CRS',
+                                'type': 'cruise',
+                                'points': [
+                                    [-73.9580, 40.8003],
+                                    [-73.9498, 40.7968],
+                                    [-73.9737, 40.7648],
+                                    [-73.9814, 40.7681]
+                                ]
+                                ,
+                                'nLoop': 3,
+                                'startTime': 1,
+                                'endTime': 20
+                            };
+                            expect(res.body).to.deep.include(task_crs);
+                            expect(res.body).to.have.lengthOf(1);
+                            done();
+                        });
+                });
+        });
+
+        it('one task', done => {
+            collection.insertMany(docs)
+                .then(() => {
+                    request(app)
+                        .get('/task/tid_333')
+                        .expect(200)
+                        .end((err, res) => {
+                            const task_crs = {
+                                'id': 'tid_333',
+                                'name': 'CRS',
+                                'type': 'cruise',
+                                'points': [
+                                    [-73.9580, 40.8003],
+                                    [-73.9498, 40.7968],
+                                    [-73.9737, 40.7648],
+                                    [-73.9814, 40.7681]
+                                ]
+                                ,
+                                'nLoop': 3,
+                                'startTime': 1,
+                                'endTime': 20
+                            };
+                            should.not.exist(err);
+                            expect(res.body).to.deep.eql(task_crs);
+                            done();
+                        });
+                });
+
+        });
+    });
+
+    describe('Add...', () => {
+        it('an attack task', done => {
+            const fe_atk = {
+                id: 'feid_1122',
+                name: 'test_atk_task',
+                type: 'attack',
+                lng: 121,
+                lat: 31,
+                startTime: 12,
+                endTime: 42
+            };
+            const be_atk_exp = {
+                id: 'feid_1122',
+                name: 'test_atk_task',
+                type: 'attack',
+                target: {
+                    type: 'Point',
+                    coordinates: [121, 31]
+                },
+                startTime: 12,
+                endTime: 42
+            };
+            request(app)
+                .post('/task')
+                .type('json')
+                .send(fe_atk)
+                .expect(201)
+                .end((err, res) => {
+                    should.not.exist(err);
+                    collection.findOne({'id': 'feid_1122'}, {}, (error, data) => {
+                        should.not.exist(error);
+                        expect(data).to.deep.include(be_atk_exp);
+                        done();
+                    });
+                });
+
+        });
+        it('a cruise task', done => {
+            const fe_crs = {
+                id: 'feid_1122',
+                name: 'test_crs_task',
+                type: 'cruise',
+                points: [[110, 30], [121, 31], [115, 30.5]],
+                nLoop: 3,
+                startTime: 12,
+                endTime: 42
+            };
+            const be_crs_exp = {
+                id: 'feid_1122',
+                name: 'test_crs_task',
+                type: 'cruise',
+                target: {
+                    'type': 'MultiPoint',
+                    'coordinates': [[110, 30], [121, 31], [115, 30.5]]
+                },
+                nLoop: 3,
+                startTime: 12,
+                endTime: 42
+            };
+            request(app)
+                .post('/task')
+                .type('json')
+                .send(fe_crs)
+                .expect(201)
+                .end((err, res) => {
+                    should.not.exist(err);
+                    collection.findOne({'id': 'feid_1122'}, {}, (error, data) => {
+                        should.not.exist(error);
+                        expect(data).to.deep.include(be_crs_exp);
+                        done();
+                    });
+                });
+
+        });
+
+        describe('various types of tasks...', () => {
+            it('without purge', done => {
+                const fe_docs = [{
+                    'id': 'tid_1111',
+                    'name': 'Task name',
+                    'type': 'attack',
+                    'lng': 121.5,
+                    'lat': 31.3,
+                    'startTime': 42,
+                    'endTime': 404
+                }, {
+                    'id': 'tid_222',
+                    'name': 'research',
+                    'type': 'research',
+                    'lng': 121,
+                    'lat': 31,
+                    'startTime': 66,
+                    'endTime': 233
+                }, {
+                    'id': 'tid_333',
+                    'name': 'CRS',
+                    'type': 'cruise',
+                    'points': [
+                        [-73.9580, 40.8003],
+                        [-73.9498, 40.7968],
+                        [-73.9737, 40.7648],
+                        [-73.9814, 40.7681]
+                    ],
+                    'nLoop': 3,
+                    'startTime': 1,
+                    'endTime': 20
+                }];
+                request(app)
+                    .post('/task')
+                    .type('json')
+                    .send(fe_docs)
+                    .expect(201)
+                    .end((err,res)=>{
+                        should.not.exist(err);
+                        collection.count({}, (e, count) => {
+                            expect(count).to.eql(3);
+                            done();
+                        });
+                    });
+
+            });
+        });
+
+
+    });
+
 });

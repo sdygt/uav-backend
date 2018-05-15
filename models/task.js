@@ -16,6 +16,9 @@ module.exports = {
         expect(feTask.type).to.be.oneOf(['attack', 'research', 'cruise']);
         if (feTask.type === 'cruise') {
             expect(feTask.points).to.be.an('array');
+        } else {
+            expect(feTask).to.have.property('lng');
+            expect(feTask).to.have.property('lat');
         }
 
         switch (feTask.type) {
@@ -73,5 +76,36 @@ module.exports = {
             };
         }
     },
+
+    getAll: async (type) => {
+        let filter;
+        if (typeof type === 'undefined') {
+            filter = {};
+        } else {
+            filter = {type: type};
+        }
+
+        return collection.find(filter, {}).toArray();
+    },
+
+    getOne: async (id) => {
+        return collection.findOne({'id': id}, {});
+    },
+
+    addOne: async (beTask) => {
+        return collection.updateOne({id: beTask.id}, {$set: beTask}, {upsert: true});
+    },
+
+    addMany: async (abeTask, purge) => {
+        const bulk = collection.initializeOrderedBulkOp();
+
+        if (purge) {
+            bulk.find({}).remove({});
+        }
+        abeTask.forEach(beTask => {
+            return bulk.find({id: beTask.id}).upsert().updateOne({$set: beTask});
+        });
+        return bulk.execute();
+    }
 
 };
