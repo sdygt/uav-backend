@@ -42,5 +42,13 @@ app.post('/', (req, res, next) => {
     }
 });
 
+app.delete('/:id', (req, res, next) => {
+    const arrID = req.params.id.split(',').filter(str => str !== '');
+    mTask.remove(arrID)
+        .then(deletedCount => {
+            res.status(200).json({'deletedCount': deletedCount}).end();
+        })
+        .catch(e => next(e));
+});
 
 module.exports = app;

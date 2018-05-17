@@ -9,7 +9,7 @@ let expect = chai.expect;
 const mTask = require('../../models/task');
 const MongoClient = require('mongodb').MongoClient;
 
-describe('/test', () => {
+describe('/task', () => {
 
     let collection;
 
@@ -395,7 +395,7 @@ describe('/test', () => {
                     .type('json')
                     .send(fe_docs)
                     .expect(201)
-                    .end((err,res)=>{
+                    .end((err, res) => {
                         should.not.exist(err);
                         collection.count({}, (e, count) => {
                             expect(count).to.eql(3);
@@ -404,9 +404,133 @@ describe('/test', () => {
                     });
 
             });
-        });
+            it('with purge', async () => {
+                const be_docs = [
+                    {
+                        'id': 'tid_1111', 'name': 'Task name', 'type': 'attack',
+                        'target': {
+                            'type': 'Point',
+                            'coordinates': [121.5, 31.3]
+                        },
+                        'startTime': 42, 'endTime': 404
+                    }, {
+                        'id': 'tid_222', 'name': 'research', 'type': 'research',
+                        'target': {
+                            'type': 'Point',
+                            'coordinates': [121, 31]
+                        },
+                        'startTime': 66, 'endTime': 233
+                    }, {
+                        'id': 'tid_333', 'name': 'CRS', 'type': 'cruise',
+                        'target': {
+                            'type': 'MultiPoint',
+                            'coordinates': [
+                                [-73.9580, 40.8003], [-73.9498, 40.7968],
+                                [-73.9737, 40.7648], [-73.9814, 40.7681]
+                            ]
+                        },
+                        'nLoop': 3, 'startTime': 1, 'endTime': 20
+                    }];
+                const fe_docs = [
+                    {
+                        'id': 'tid_1111',
+                        'name': 'Task name', 'type': 'attack',
+                        'lng': 121.5, 'lat': 31.3,
+                        'startTime': 42, 'endTime': 404
+                    }, {
+                        'id': 'tid_222',
+                        'name': 'research', 'type': 'research',
+                        'lng': 121, 'lat': 31,
+                        'startTime': 66, 'endTime': 233
+                    }, {
+                        'id': 'tid_333',
+                        'name': 'CRS', 'type': 'cruise',
+                        'points': [
+                            [-73.9580, 40.8003],
+                            [-73.9498, 40.7968],
+                            [-73.9737, 40.7648],
+                            [-73.9814, 40.7681]
+                        ],
+                        'nLoop': 3,
+                        'startTime': 1, 'endTime': 20
+                    }];
+                await collection.insertMany(be_docs)
+                    .then(() => {
+                        request(app)
+                            .post('/task')
+                            .type('json')
+                            .set('X-Purge-Task', false)
+                            .send(fe_docs)
+                            .expect(201)
+                            .end((err, res) => {
+                                should.not.exist(err);
+                            });
+                    })
+                    .then(() => {
+                        request(app)
+                            .post('/task')
+                            .type('json')
+                            .set('X-Purge-Task', true)
+                            .send(fe_docs)
+                            .expect(201)
+                            .end((err, res) => {
+                                should.not.exist(err);
+                            });
+                    })
+                    .then(async () => {
+                        let c = await collection.count({});
+                        expect(c).to.eql(3);
+                    });
 
+
+            });
+        });
 
     });
 
+    describe('Delete...', () => {
+        it('tasks', (done) => {
+            const be_docs = [
+                {
+                    'id': 'tid_1111', 'name': 'Task name', 'type': 'attack',
+                    'target': {
+                        'type': 'Point',
+                        'coordinates': [121.5, 31.3]
+                    },
+                    'startTime': 42, 'endTime': 404
+                }, {
+                    'id': 'tid_222', 'name': 'research', 'type': 'research',
+                    'target': {
+                        'type': 'Point',
+                        'coordinates': [121, 31]
+                    },
+                    'startTime': 66, 'endTime': 233
+                }, {
+                    'id': 'tid_333', 'name': 'CRS', 'type': 'cruise',
+                    'target': {
+                        'type': 'MultiPoint',
+                        'coordinates': [
+                            [-73.9580, 40.8003], [-73.9498, 40.7968],
+                            [-73.9737, 40.7648], [-73.9814, 40.7681]
+                        ]
+                    },
+                    'nLoop': 3, 'startTime': 1, 'endTime': 20
+                }];
+            collection.insertMany(be_docs, (err, r) => {
+                should.not.exist(err);
+                request(app)
+                    .delete('/task/,tid_1111,tid_333,')
+                    .expect(200)
+                    .end((e, res) => {
+                        should.not.exist(e);
+                        expect(res.body).to.deep.eql({deletedCount: 2});
+                        collection.count({}, {}, (e, c) => {
+                            expect(c).to.eql(1);
+                        });
+                        done();
+                    });
+            });
+
+        });
+    });
 });

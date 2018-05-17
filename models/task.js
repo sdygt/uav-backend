@@ -31,7 +31,7 @@ module.exports = {
                     'type': 'MultiPoint',
                     'coordinates': feTask.points
                 },
-                'nLoop': feTask.nLoop, //巡航圈数
+                'nLoop': feTask.nLoop || -1, //巡航圈数
                 'startTime': feTask.startTime || 0,
                 'endTime': feTask.endTime || 0
             };
@@ -106,6 +106,18 @@ module.exports = {
             return bulk.find({id: beTask.id}).upsert().updateOne({$set: beTask});
         });
         return bulk.execute();
+    },
+
+    remove: async (arrID) => {
+        let arrCountP = arrID.map(async id => {
+            let r = await collection.deleteOne({'id': id});
+            return r.deletedCount;
+        });
+
+        return await Promise.all(arrCountP).then(value => {
+            return value.reduce((a, b) => a + b); //deletedCount
+        });
+
     }
 
 };
