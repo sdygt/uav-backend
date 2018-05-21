@@ -492,21 +492,21 @@ describe('/task', () => {
         it('tasks', (done) => {
             const be_docs = [
                 {
-                    'id': 'tid_1111', 'name': 'Task name', 'type': 'attack',
+                    'id': 'tid_1234', 'name': 'Task name', 'type': 'attack',
                     'target': {
                         'type': 'Point',
                         'coordinates': [121.5, 31.3]
                     },
                     'startTime': 42, 'endTime': 404
                 }, {
-                    'id': 'tid_222', 'name': 'research', 'type': 'research',
+                    'id': 'tid_2223', 'name': 'research', 'type': 'research',
                     'target': {
                         'type': 'Point',
                         'coordinates': [121, 31]
                     },
                     'startTime': 66, 'endTime': 233
                 }, {
-                    'id': 'tid_333', 'name': 'CRS', 'type': 'cruise',
+                    'id': 'tid_3333', 'name': 'CRS', 'type': 'cruise',
                     'target': {
                         'type': 'MultiPoint',
                         'coordinates': [
@@ -517,9 +517,10 @@ describe('/task', () => {
                     'nLoop': 3, 'startTime': 1, 'endTime': 20
                 }];
             collection.insertMany(be_docs, (err, r) => {
+                console.warn(err);
                 should.not.exist(err);
                 request(app)
-                    .delete('/task/,tid_1111,tid_333,')
+                    .delete('/task/,tid_1234,tid_3333,')
                     .expect(200)
                     .end((e, res) => {
                         should.not.exist(e);
@@ -534,3 +535,4 @@ describe('/task', () => {
         });
     });
 });
+
