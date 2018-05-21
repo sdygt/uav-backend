@@ -10,11 +10,19 @@ let collection;
 
 module.exports = {
     getAll: async () => {
-        return collection.find({}, {projection:{'_id':0}}).toArray();
+        return collection.find({}, {projection: {'_id': 0}}).toArray();
     },
 
     getOne: async (id) => {
-        return collection.findOne({'id': id}, {projection:{'_id':0}});
+        return collection.findOne({'id': id}, {projection: {'_id': 0}});
+    },
+
+    addOne: async function (scheme) {
+        /*
+         I know it's weired,
+         But the deadline is approaching _(:з」∠)_
+         */
+        return this.addMany([scheme]);
     },
 
     addMany: async (aScheme, purge) => {
