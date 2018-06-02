@@ -49,4 +49,29 @@ app.delete('/:id', (req, res, next) => {
         .catch(e => next(e));
 });
 
+app.get('/:id/assignment', (req, res, next) => {
+    const lineArrs = [
+        [
+            [116.368904, 39.913423],
+            [116.382122, 39.901176]
+        ],
+        [
+            [116.368904, 39.913423],
+            [116.398258, 39.904600]
+        ]
+    ];
+    const ret = {
+        'data': lineArrs
+    };
+    res.json(ret).status(200).end();
+});
+
+app.get('/:id/route', (req, res, next) => {
+
+});
+
 module.exports = app;
+
+
+
+
