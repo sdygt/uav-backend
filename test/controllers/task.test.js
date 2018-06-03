@@ -488,7 +488,7 @@ describe('/task', () => {
 
     });
 
-    describe('Delete...', () => {
+    describe.skip('Delete...', () => {
         it('tasks', (done) => {
             const be_docs = [
                 {

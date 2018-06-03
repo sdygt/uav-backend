@@ -67,7 +67,15 @@ app.get('/:id/assignment', (req, res, next) => {
 });
 
 app.get('/:id/route', (req, res, next) => {
-
+    const ret = {
+        'data': [
+            [121, 31],
+            [120, 30],
+            [115, 29],
+            [110, 30]
+        ]
+    };
+    res.json(ret).status(200).end();
 });
 
 module.exports = app;
